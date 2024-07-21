@@ -1,79 +1,65 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+// Firebase Realtime Database URL
+const databaseURL = "https://login-40b17-default-rtdb.firebaseio.com/";
+const userId = "user1"; // Example user ID for demonstration
 
-// Your Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyAbkBt51tUKOyJ1ObnkQrzbn5ArdIM9ou8",
-  authDomain: "login-40b17.firebaseapp.com",
-  projectId: "login-40b17",
-  storageBucket: "login-40b17.appspot.com",
-  messagingSenderId: "761800728775",
-  appId: "1:761800728775:web:c31a432786a0663dce1ee2",
-  measurementId: "G-8Y8VMZY32X"
-};
+// Functions to interact with Firebase Realtime Database
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const firestore = getFirestore(app);
-const provider = new GoogleAuthProvider();
+// Write data
+document.getElementById("write-button").addEventListener("click", () => {
+    const name = document.getElementById("name").value;
+    const age = parseInt(document.getElementById("age").value);
+    const data = { name, age };
 
-// Handle authentication state changes
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        console.log("User signed in:", user);
-        document.getElementById("login-button").style.display = "none";
-        document.getElementById("logout-button").style.display = "block";
-    } else {
-        console.log("No user signed in");
-        document.getElementById("login-button").style.display = "block";
-        document.getElementById("logout-button").style.display = "none";
-    }
+    fetch(`${databaseURL}users/${userId}.json`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("output").textContent = "Data written successfully";
+    })
+    .catch(error => console.error("Error writing data:", error));
 });
 
-// Sign in with popup
-document.getElementById("login-button").addEventListener("click", async () => {
-    try {
-        const result = await signInWithPopup(auth, provider);
-        console.log("User signed in:", result.user);
-    } catch (error) {
-        console.error("Error signing in:", error);
-    }
-});
-
-// Sign out
-document.getElementById("logout-button").addEventListener("click", async () => {
-    try {
-        await signOut(auth);
-        console.log("User signed out");
-    } catch (error) {
-        console.error("Error signing out:", error);
-    }
-});
-
-// Implement WebRTC for video calling (dummy setup)
-// This example assumes you have WebRTC setup to handle local and remote video streams
-
-const startButton = document.getElementById("start-button");
-const callButton = document.getElementById("call-button");
-const hangupButton = document.getElementById("hangup-button");
-
-startButton.addEventListener("click", () => {
-    // Start local video stream
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        .then(stream => {
-            document.getElementById("localVideo").srcObject = stream;
+// Read data
+document.getElementById("read-button").addEventListener("click", () => {
+    fetch(`${databaseURL}users/${userId}.json`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("output").textContent = JSON.stringify(data, null, 2);
         })
-        .catch(error => {
-            console.error("Error accessing media devices.", error);
-        });
+        .catch(error => console.error("Error reading data:", error));
 });
 
-callButton.addEventListener("click", () => {
-    // Implement your call initiation logic
+// Update data
+document.getElementById("update-button").addEventListener("click", () => {
+    const age = parseInt(document.getElementById("age").value);
+    const updateData = { age };
+
+    fetch(`${databaseURL}users/${userId}.json`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(updateData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("output").textContent = "Data updated successfully";
+    })
+    .catch(error => console.error("Error updating data:", error));
 });
 
-hangupButton.addEventListener("click", () => {
-    // Implement your call hangup logic
+// Delete data
+document.getElementById("delete-button").addEventListener("click", () => {
+    fetch(`${databaseURL}users/${userId}.json`, {
+        method: "DELETE"
+    })
+    .then(() => {
+        document.getElementById("output").textContent = "Data deleted successfully";
+    })
+    .catch(error => console.error("Error deleting data:", error));
 });
