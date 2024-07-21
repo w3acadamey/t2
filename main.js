@@ -7,6 +7,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
+const user1Button = document.getElementById('user1Button');
+const user2Button = document.getElementById('user2Button');
+const unsetButton = document.getElementById('unsetButton');
 const startCallButton = document.getElementById('startCall');
 const endCallButton = document.getElementById('endCall');
 const localAudio = document.getElementById('localAudio');
@@ -16,14 +19,30 @@ let localStream;
 let peerConnection;
 const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
+let userType = null; // 'user1' or 'user2'
 let callId = "voice_call";
 
+const setUserType = (type) => {
+    userType = type;
+    if (type === 'user1' || type === 'user2') {
+        startCallButton.style.display = 'inline';
+        endCallButton.style.display = 'none';
+    } else {
+        startCallButton.style.display = 'none';
+        endCallButton.style.display = 'none';
+    }
+};
+
+user1Button.onclick = () => setUserType('user1');
+user2Button.onclick = () => setUserType('user2');
+unsetButton.onclick = () => setUserType(null);
+
 startCallButton.onclick = async () => {
+    if (!userType) return;
     console.log('Start Call button clicked');
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         localAudio.srcObject = localStream;
-        console.log('Local stream obtained');
 
         peerConnection = new RTCPeerConnection(configuration);
         localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
@@ -46,8 +65,8 @@ startCallButton.onclick = async () => {
         console.log('Offer created and set as local description');
         database.ref(callId + '/offer').set(JSON.stringify(offer));
 
-        endCallButton.disabled = false;
-        startCallButton.disabled = true;
+        endCallButton.style.display = 'inline';
+        startCallButton.style.display = 'none';
     } catch (error) {
         console.error('Error starting call:', error);
     }
@@ -61,8 +80,8 @@ endCallButton.onclick = () => {
     if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
     }
-    endCallButton.disabled = true;
-    startCallButton.disabled = false;
+    endCallButton.style.display = 'none';
+    startCallButton.style.display = userType ? 'inline' : 'none';
 };
 
 // Listen for incoming calls
