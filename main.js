@@ -1,152 +1,103 @@
-// Firebase configuration
-const firebaseConfig = {
-    databaseURL: "https://login-40b17-default-rtdb.firebaseio.com/"
-};
+const APP_ID = "YOUR APP ID"
+const TOKEN = "YOUR TEMP TOKEN"
+const CHANNEL = "YOUR CHANNEL NAME"
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+const client = AgoraRTC.createClient({mode:'rtc', codec:'vp8'})
 
-const user1Button = document.getElementById('user1Button');
-const user2Button = document.getElementById('user2Button');
-const unsetButton = document.getElementById('unsetButton');
-const startCallButton = document.getElementById('startCall');
-const endCallButton = document.getElementById('endCall');
-const localAudio = document.getElementById('localAudio');
-const remoteAudio = document.getElementById('remoteAudio');
+let localTracks = []
+let remoteUsers = {}
 
-let localStream;
-let peerConnection;
-const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+let joinAndDisplayLocalStream = async () => {
 
-let userType = null; // 'user1' or 'user2'
-let callId = "voice_call";
+    client.on('user-published', handleUserJoined)
+    
+    client.on('user-left', handleUserLeft)
+    
+    let UID = await client.join(APP_ID, CHANNEL, TOKEN, null)
 
-const setUserType = (type) => {
-    userType = type;
-    if (type === 'user1' || type === 'user2') {
-        startCallButton.style.display = 'inline';
-        endCallButton.style.display = 'none';
-    } else {
-        startCallButton.style.display = 'none';
-        endCallButton.style.display = 'none';
-    }
-};
+    localTracks = await AgoraRTC.createMicrophoneAndCameraTracks() 
 
-user1Button.onclick = () => setUserType('user1');
-user2Button.onclick = () => setUserType('user2');
-unsetButton.onclick = () => setUserType(null);
+    let player = `<div class="video-container" id="user-container-${UID}">
+                        <div class="video-player" id="user-${UID}"></div>
+                  </div>`
+    document.getElementById('video-streams').insertAdjacentHTML('beforeend', player)
 
-startCallButton.onclick = async () => {
-    if (!userType) return;
-    console.log('Start Call button clicked');
-    try {
-        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        localAudio.srcObject = localStream;
+    localTracks[1].play(`user-${UID}`)
+    
+    await client.publish([localTracks[0], localTracks[1]])
+}
 
-        peerConnection = new RTCPeerConnection(configuration);
-        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-        console.log('Tracks added to peer connection');
+let joinStream = async () => {
+    await joinAndDisplayLocalStream()
+    document.getElementById('join-btn').style.display = 'none'
+    document.getElementById('stream-controls').style.display = 'flex'
+}
 
-        peerConnection.onicecandidate = ({ candidate }) => {
-            if (candidate) {
-                console.log('New ICE candidate:', candidate);
-                database.ref(callId + '/ice_candidates').push(JSON.stringify(candidate));
-            }
-        };
+let handleUserJoined = async (user, mediaType) => {
+    remoteUsers[user.uid] = user 
+    await client.subscribe(user, mediaType)
 
-        peerConnection.ontrack = ({ streams: [stream] }) => {
-            console.log('Remote stream received');
-            remoteAudio.srcObject = stream;
-        };
-
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        console.log('Offer created and set as local description');
-        database.ref(callId + '/offer').set(JSON.stringify(offer));
-
-        endCallButton.style.display = 'inline';
-        startCallButton.style.display = 'none';
-    } catch (error) {
-        console.error('Error starting call:', error);
-    }
-};
-
-endCallButton.onclick = () => {
-    console.log('End Call button clicked');
-    if (peerConnection) {
-        peerConnection.close();
-    }
-    if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-    }
-    endCallButton.style.display = 'none';
-    startCallButton.style.display = userType ? 'inline' : 'none';
-};
-
-// Listen for incoming calls
-database.ref(callId + '/offer').on('value', async snapshot => {
-    if (!snapshot.exists()) return;
-    const offer = JSON.parse(snapshot.val());
-    console.log('Offer received:', offer);
-
-    try {
-        if (!peerConnection) {
-            peerConnection = new RTCPeerConnection(configuration);
-
-            peerConnection.onicecandidate = ({ candidate }) => {
-                if (candidate) {
-                    console.log('New ICE candidate:', candidate);
-                    database.ref(callId + '/ice_candidates').push(JSON.stringify(candidate));
-                }
-            };
-
-            peerConnection.ontrack = ({ streams: [stream] }) => {
-                console.log('Remote stream received');
-                remoteAudio.srcObject = stream;
-            };
-
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            localAudio.srcObject = localStream;
-            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-            console.log('Local stream obtained and tracks added to peer connection');
+    if (mediaType === 'video'){
+        let player = document.getElementById(`user-container-${user.uid}`)
+        if (player != null){
+            player.remove()
         }
 
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-        console.log('Offer set as remote description');
-        const answer = await peerConnection.createAnswer();
-        await peerConnection.setLocalDescription(answer);
-        console.log('Answer created and set as local description');
-        database.ref(callId + '/answer').set(JSON.stringify(answer));
-    } catch (error) {
-        console.error('Error handling incoming call:', error);
+        player = `<div class="video-container" id="user-container-${user.uid}">
+                        <div class="video-player" id="user-${user.uid}"></div> 
+                 </div>`
+        document.getElementById('video-streams').insertAdjacentHTML('beforeend', player)
+
+        user.videoTrack.play(`user-${user.uid}`)
     }
-});
 
-// Listen for answer
-database.ref(callId + '/answer').on('value', async snapshot => {
-    if (!snapshot.exists()) return;
-    const answer = JSON.parse(snapshot.val());
-    console.log('Answer received:', answer);
-
-    try {
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-        console.log('Answer set as remote description');
-    } catch (error) {
-        console.error('Error setting remote description:', error);
+    if (mediaType === 'audio'){
+        user.audioTrack.play()
     }
-});
+}
 
-// Listen for ICE candidates
-database.ref(callId + '/ice_candidates').on('child_added', async snapshot => {
-    if (!snapshot.exists()) return;
-    const candidate = JSON.parse(snapshot.val());
-    console.log('ICE candidate received:', candidate);
+let handleUserLeft = async (user) => {
+    delete remoteUsers[user.uid]
+    document.getElementById(`user-container-${user.uid}`).remove()
+}
 
-    try {
-        await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-        console.log('ICE candidate added to peer connection');
-    } catch (error) {
-        console.error('Error adding ICE candidate:', error);
+let leaveAndRemoveLocalStream = async () => {
+    for(let i = 0; localTracks.length > i; i++){
+        localTracks[i].stop()
+        localTracks[i].close()
     }
-});
+
+    await client.leave()
+    document.getElementById('join-btn').style.display = 'block'
+    document.getElementById('stream-controls').style.display = 'none'
+    document.getElementById('video-streams').innerHTML = ''
+}
+
+let toggleMic = async (e) => {
+    if (localTracks[0].muted){
+        await localTracks[0].setMuted(false)
+        e.target.innerText = 'Mic on'
+        e.target.style.backgroundColor = 'cadetblue'
+    }else{
+        await localTracks[0].setMuted(true)
+        e.target.innerText = 'Mic off'
+        e.target.style.backgroundColor = '#EE4B2B'
+    }
+}
+
+let toggleCamera = async (e) => {
+    if(localTracks[1].muted){
+        await localTracks[1].setMuted(false)
+        e.target.innerText = 'Camera on'
+        e.target.style.backgroundColor = 'cadetblue'
+    }else{
+        await localTracks[1].setMuted(true)
+        e.target.innerText = 'Camera off'
+        e.target.style.backgroundColor = '#EE4B2B'
+    }
+}
+
+document.getElementById('join-btn').addEventListener('click', joinStream)
+document.getElementById('leave-btn').addEventListener('click', leaveAndRemoveLocalStream)
+document.getElementById('mic-btn').addEventListener('click', toggleMic)
+document.getElementById('camera-btn').addEventListener('click', toggleCamera)
