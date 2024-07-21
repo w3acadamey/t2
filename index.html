@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firebase Realtime Database Example</title>
+    <title>Video Call Application</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Firebase Realtime Database Example</h1>
+    <h1>Video Call Application</h1>
     <div>
-        <input type="text" id="name" placeholder="Name">
-        <input type="number" id="age" placeholder="Age">
-        <button id="write-button">Write Data</button>
-        <button id="read-button">Read Data</button>
-        <button id="update-button">Update Data</button>
-        <button id="delete-button">Delete Data</button>
+        <video id="localVideo" autoplay muted></video>
+        <video id="remoteVideo" autoplay></video>
     </div>
-    <div id="output"></div>
-
+    <div>
+        <button id="start-button">Start Video</button>
+        <button id="call-button">Start Call</button>
+        <button id="hangup-button">Hang Up</button>
+    </div>
     <script type="module" src="app.js"></script>
 </body>
 </html>
