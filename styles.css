@@ -8,9 +8,10 @@ body {
     padding: 0;
 }
 
-#localVideoContainer,
-#remoteVideoContainer {
-    margin: 10px;
+#video-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px;
 }
 
 video {
@@ -18,6 +19,7 @@ video {
     height: 200px;
     border: 1px solid #ccc;
     background-color: #000;
+    margin: 10px;
 }
 
 #controls {
