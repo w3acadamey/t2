@@ -7,10 +7,10 @@ h1 {
     color: #333;
 }
 
-input {
-    margin: 5px;
-    padding: 10px;
-    font-size: 16px;
+video {
+    width: 45%;
+    margin: 10px;
+    border: 1px solid #ddd;
 }
 
 button {
@@ -20,8 +20,10 @@ button {
     cursor: pointer;
 }
 
-#output {
-    margin-top: 20px;
-    font-size: 18px;
-    color: #007BFF;
+#localVideo {
+    border-radius: 8px;
+}
+
+#remoteVideo {
+    border-radius: 8px;
 }
