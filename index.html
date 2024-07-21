@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Calling Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        #localAudio, #remoteAudio {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Voice Calling Application</h1>
+    <button id="startCall">Start Call</button>
+    <button id="endCall" disabled>End Call</button>
+
+    <audio id="localAudio" autoplay></audio>
+    <audio id="remoteAudio" autoplay></audio>
+
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <!-- Firebase Realtime Database SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+
+    <script src="main.js"></script>
+</body>
+</html>
