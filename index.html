@@ -1,37 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Calling Application</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-        }
-        #localAudio, #remoteAudio {
-            display: none;
-        }
-    </style>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Ivy Streams</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
 </head>
 <body>
-    <h1>Voice Calling Application</h1>
-    <button id="user1Button">User-1</button>
-    <button id="user2Button">User-2</button>
-    <button id="unsetButton">Unset</button>
-    <br><br>
-    <button id="startCall" style="display:none;">Start Call</button>
-    <button id="endCall" style="display:none;">End Call</button>
 
-    <audio id="localAudio" autoplay></audio>
-    <audio id="remoteAudio" autoplay></audio>
+    <button id="join-btn">Join Stream</button>
 
-    <!-- Firebase App (the core Firebase SDK) -->
-    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
-    <!-- Firebase Realtime Database SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+    <div id="stream-wrapper">
+        <div id="video-streams"></div>
 
-    <script src="main.js"></script>
+        <div id="stream-controls">
+            <button id="leave-btn">Leave Stream</button>
+            <button id="mic-btn">Mic On</button>
+            <button id="camera-btn">Camera on</button>
+        </div>
+    </div>
+    
 </body>
+<!-- <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script> -->
+<script src="AgoraRTC_N-4.7.3.js"></script>
+<script src='main.js'></script>
 </html>
