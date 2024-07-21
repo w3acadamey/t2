@@ -1,0 +1,8 @@
+#localVideo, #remoteVideo {
+    width: 45%;
+    margin: 10px;
+    border: 1px solid black;
+}
+#call-button, #hangup-button {
+    display: none;
+}
