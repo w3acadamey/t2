@@ -1,29 +1,31 @@
 body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     font-family: Arial, sans-serif;
-    margin: 20px;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
 }
 
-h1 {
-    color: #333;
+#localVideoContainer,
+#remoteVideoContainer {
+    margin: 10px;
 }
 
 video {
-    width: 45%;
-    margin: 10px;
-    border: 1px solid #ddd;
+    width: 300px;
+    height: 200px;
+    border: 1px solid #ccc;
+    background-color: #000;
+}
+
+#controls {
+    margin: 20px;
 }
 
 button {
     margin: 5px;
-    padding: 10px;
+    padding: 10px 20px;
     font-size: 16px;
-    cursor: pointer;
-}
-
-#localVideo {
-    border-radius: 8px;
-}
-
-#remoteVideo {
-    border-radius: 8px;
 }
